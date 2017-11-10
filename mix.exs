@@ -1,19 +1,37 @@
 defmodule BalancedTree.Mixfile do
   use Mix.Project
 
+  @version "0.1.0"
+  @github "https://github.com/fracek/balanced_tree"
+
   def project do
     [app: :balanced_tree,
-      version: "0.1.0",
-      elixir: "~> 1.5",
-      start_permanent: Mix.env == :prod,
-      deps: deps()]
+     version: @version,
+     elixir: "~> 1.4",
+     deps: deps(),
+     name: "BalancedTree",
+     source_url: @github,
+     docs: [source_ref: "v#{@version}", main: "readme", extras: ["README.md"]],
+     description: description(),
+     package: package()]
   end
 
   def application do
-    [extra_applications: [:logger]]
+    []
   end
 
   defp deps do
-    [{:ex_doc, "~> 0.16", only: :dev, runtime: false}]
+    [{:ex_doc, ">= 0.0.0", only: :dev},
+     {:earmark, ">= 0.0.0", only: :dev}]
+  end
+
+  defp description() do
+    "AA Tree implementation."
+  end
+
+  defp package() do
+    [maintainers: ["Francesco Ceccon"],
+     licenses: ["Apache 2.0"],
+     links: %{"GitHub" => @github}]
   end
 end
