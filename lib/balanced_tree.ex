@@ -13,6 +13,8 @@ defmodule BalancedTree do
   use Bitwise, only: [:<<<, :>>>]
   defstruct [:root, :comparator]
 
+  @behaviour Access
+
   @typedoc "A balanced tree."
   @type t :: %__MODULE__{}
 
