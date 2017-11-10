@@ -1,5 +1,7 @@
 # BalancedTree
 
+[![Build Status](https://travis-ci.org/fracek/balanced_tree.svg?branch=master)](https://travis-ci.org/fracek/balanced_tree) [![Hex.pm](https://img.shields.io/hexpm/v/balanced_tree.svg)](https://hex.pm/packages/balanced_tree)
+
 This module provides an implementation of Prof. Arne Andersson's Balanced Trees.
 Balanced trees are used to store and retrieve ordered data efficiently.
 
