@@ -6,8 +6,6 @@ defmodule BalancedTree do
   By default, two keys are considered equal if one is not less than `<` or
   greater than `>` the other. A different comparison function can be specified.
 
-  ## Data Structure
-
   The implementation is largely taken from Erlang `:gb_trees`, with minor modifications
   to provide an interface similar to Elixir `Map` module.
   """
