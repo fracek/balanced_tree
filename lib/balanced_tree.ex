@@ -293,6 +293,8 @@ defmodule BalancedTree do
       {:a, 1}
       iex> BalancedTree.min(BalancedTree.new([b: 2, a: 1], comparator: &bigger_to_smaller/2))
       {:b, 2}
+      iex> BalancedTree.min(BalancedTree.new())
+      nil
 
   """
   @spec min(t) :: {key, value}
@@ -309,6 +311,8 @@ defmodule BalancedTree do
       {:b, 2}
       iex> BalancedTree.max(BalancedTree.new([b: 2, a: 1], comparator: &bigger_to_smaller/2))
       {:a, 1}
+      iex> BalancedTree.max(BalancedTree.new())
+      nil
 
   """
   @spec max(t) :: {key, value}
@@ -455,10 +459,12 @@ defmodule BalancedTree do
   end
 
   defp do_min({_, root}), do: do_min(root)
+  defp do_min(nil), do: nil
   defp do_min({key, value, nil, _bigger}), do: {key, value}
   defp do_min({_key, _value, smaller, _bigger}), do: do_min(smaller)
 
   defp do_max({_, root}), do: do_max(root)
+  defp do_max(nil), do: nil
   defp do_max({key, value, _smaller, nil}), do: {key, value}
   defp do_max({_key, _value, _smaller, bigger}), do: do_max(bigger)
 
