@@ -73,6 +73,7 @@ defmodule BalancedTree do
       iex> BalancedTree.put(BalancedTree.new([a: 1, b: 2]), :b, 3)
       #BalancedTree<[a: 1, b: 3]>
   """
+  @spec put(t, key, value) :: t
   def put(%{root: root, comparator: cmp} = tree, key, value) do
     %{tree | root: do_put(root, cmp, key, value)}
   end
@@ -87,6 +88,7 @@ defmodule BalancedTree do
       iex> BalancedTree.delete(BalancedTree.new([a: 1]), :b)
       #BalancedTree<[a: 1]>
   """
+  @spec delete(t, key) :: t
   def delete(%{root: root, comparator: cmp} = tree, key) do
     %{tree | root: do_delete(root, cmp, key)}
   end
@@ -106,6 +108,18 @@ defmodule BalancedTree do
     do_fetch(root, cmp, key)
   end
 
+  @doc """
+  Fetches the value for a specific `key` in the given `tree`, raising an error
+  if `tree` doesn't contain `key`.
+
+  ## Examples
+
+      iex> BalancedTree.fetch!(BalancedTree.new([a: 1]), :a)
+      1
+      iex> BalancedTree.fetch!(BalancedTree.new([a: 1]), :b)
+      ** (KeyError) key nil not found
+
+  """
   @spec fetch!(t, key) :: value | no_return
   def fetch!(tree, key) do
     case fetch(tree, key) do
@@ -122,12 +136,13 @@ defmodule BalancedTree do
 
   ## Examples
 
-     iex> BalancedTree.get(BalancedTree.new([a: 1]), :b)
-     nil
-     iex> BalancedTree.get(BalancedTree.new([a: 1]), :a)
-     1
-     iex> BalancedTree.get(BalancedTree.new([a: 1]), :b, 3)
-     3
+      iex> BalancedTree.get(BalancedTree.new([a: 1]), :b)
+      nil
+      iex> BalancedTree.get(BalancedTree.new([a: 1]), :a)
+      1
+      iex> BalancedTree.get(BalancedTree.new([a: 1]), :b, 3)
+      3
+
   """
   @spec get(t, key, value) :: value
   def get(tree, key, default \\ nil) do
@@ -152,11 +167,53 @@ defmodule BalancedTree do
       ...> end)
       iex> tree
       #BalancedTree<[]>
+      iex> {nil, tree} = BalancedTree.get_and_update(BalancedTree.new([a: 1]), :b, fn nil ->
+      ...>   {nil, 2}
+      ...> end)
+      iex> tree
+      #BalancedTree<[a: 1, b: 2]>
+
   """
-  @spec get(t, key, (value -> {get, value} | :pop)) :: {get, t} when get: term
-  def get_and_update(tree, key, fun) do
+  @spec get_and_update(t, key, (value -> {get, value} | :pop)) :: {get, t} when get: term
+  def get_and_update(tree, key, fun) when is_function(fun, 1) do
     # TODO: make this really do one pass only
     current = get(tree, key)
+
+    case fun.(current) do
+      {get, update} ->
+	{get, put(tree, key, update)}
+      :pop ->
+	{current, delete(tree, key)}
+      other ->
+	raise "the given function must return a two-element tuple or :pop, got: #{inspect other}"
+    end
+  end
+
+  @doc """
+  Gets the value fom `key` in `tree` and updates it. Raises if there is no `key`.
+
+  ## Examples
+
+      iex> {1, tree} = BalancedTree.get_and_update!(BalancedTree.new([a: 1]), :a, fn value ->
+      ...>   {value, 2 * value}
+      ...> end)
+      iex> tree
+      #BalancedTree<[a: 2]>
+      iex> {1, tree} = BalancedTree.get_and_update!(BalancedTree.new([a: 1]), :a, fn _ ->
+      ...>   :pop
+      ...> end)
+      iex> tree
+      #BalancedTree<[]>
+      iex> BalancedTree.get_and_update!(BalancedTree.new([a: 1]), :b, fn _ ->
+      ...>   :pop
+      ...> end)
+      ** (KeyError) key nil not found
+
+  """
+  @spec get_and_update!(t, key, (value -> {get, value} | :pop)) :: {get, t} | no_return when get: term
+  def get_and_update!(tree, key, fun) when is_function(fun, 1) do
+    # TODO: make this really do one pass only
+    current = fetch!(tree, key)
 
     case fun.(current) do
       {get, update} ->
@@ -194,15 +251,93 @@ defmodule BalancedTree do
     end
   end
 
+  @doc """
+  Maps function `fun` to all key-value pairs in `tree`.
+
+  ## Examples
+
+      iex> BalancedTree.map(BalancedTree.new([c: 3, b: 2, a: 1]), fn k, _ -> k end)
+      #BalancedTree<[a: :a, b: :b, c: :c]>
+
+  """
+  @spec map(t, (key, value -> value)) :: t
+  def map(%{root: root} = tree, fun) do
+    %{tree | root: do_map(root, fun)}
+  end
+
+  @doc """
+  Returns wheter the given `key` exists in `tree`.
+
+  ## Examples
+
+      iex> BalancedTree.has_key?(BalancedTree.new([a: 1]), :a)
+      true
+      iex> BalancedTree.has_key?(BalancedTree.new([a: 1]), :b)
+      false
+
+  """
+  @spec has_key?(t, key) :: boolean
+  def has_key?(tree, key) do
+    case fetch(tree, key) do
+      :error -> false
+      {:ok, _} -> true
+    end
+  end
+
+  @doc """
+  Returs the key-value pair associated with the smallest `key` in `tree`.
+
+  ## Examples
+
+      iex> BalancedTree.min(BalancedTree.new([b: 2, a: 1]))
+      {:a, 1}
+      iex> BalancedTree.min(BalancedTree.new([b: 2, a: 1], comparator: &bigger_to_smaller/2))
+      {:b, 2}
+
+  """
+  @spec min(t) :: {key, value}
+  def min(%{root: root} = _tree) do
+    do_min(root)
+  end
+
+  @doc """
+  Returs the key-value pair associated with the largest `key` in `tree`.
+
+  ## Examples
+
+      iex> BalancedTree.max(BalancedTree.new([b: 2, a: 1]))
+      {:b, 2}
+      iex> BalancedTree.max(BalancedTree.new([b: 2, a: 1], comparator: &bigger_to_smaller/2))
+      {:a, 1}
+
+  """
+  @spec max(t) :: {key, value}
+  def max(%{root: root} = _tree) do
+    do_max(root)
+  end
 
   @doc """
   Returns the number of elements in `tree`.
+
+  ## Examples
+
+      iex> BalancedTree.size(BalancedTree.new([a: 1]))
+      1
+
   """
   @spec size(t) :: integer
   def size(%{root: {size, _}} = _tree), do: size
 
   @doc """
   Returns `true` if `tree` is empty.
+
+  ## Examples
+
+      iex> BalancedTree.empty?(BalancedTree.new())
+      true
+      iex> BalancedTree.empty?(BalancedTree.new([a: 1]))
+      false
+
   """
   @spec empty?(t) :: boolean
   def empty?(tree), do: size(tree) == 0
@@ -312,6 +447,20 @@ defmodule BalancedTree do
       :eq -> {:ok, value}
     end
   end
+
+  defp do_map({size, root}, fun), do: {size, do_map(root, fun)}
+  defp do_map(nil, _fun), do: nil
+  defp do_map({key, value, smaller, bigger}, fun) do
+    {key, fun.(key, value), do_map(smaller, fun), do_map(bigger, fun)}
+  end
+
+  defp do_min({_, root}), do: do_min(root)
+  defp do_min({key, value, nil, _bigger}), do: {key, value}
+  defp do_min({_key, _value, smaller, _bigger}), do: do_min(smaller)
+
+  defp do_max({_, root}), do: do_max(root)
+  defp do_max({key, value, _smaller, nil}), do: {key, value}
+  defp do_max({_key, _value, _smaller, bigger}), do: do_max(bigger)
 
   defp pow(size), do: 2 * size
   defp div2(size), do: size >>> 1
