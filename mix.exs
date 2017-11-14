@@ -7,7 +7,7 @@ defmodule BalancedTree.Mixfile do
   def project do
     [app: :balanced_tree,
      version: @version,
-     elixir: "~> 1.4",
+     elixir: "~> 1.5",
      deps: deps(),
      name: "BalancedTree",
      source_url: @github,
