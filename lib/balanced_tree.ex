@@ -243,11 +243,10 @@ defmodule BalancedTree do
   """
   @spec pop(t, key, value) :: {value, t}
   def pop(tree, key, default \\ nil) do
-    case get_and_update(tree, key, fn _ -> :pop end) do
-      {nil, new_tree} ->
-	{default, new_tree}
-      {value, new_tree} ->
-	{value, new_tree}
+    if has_key?(tree, key) do
+      get_and_update(tree, key, fn _ -> :pop end)
+    else
+      {default, tree}
     end
   end
 

@@ -10,4 +10,8 @@ defmodule BalancedTreeTest do
   end
 
   doctest BalancedTree
+  test "popping a {key, nil} value should not return the default" do
+    tree = BalancedTree.new([a: 1, b: 2, c: nil])
+    assert {nil, _} = BalancedTree.pop(tree, :c, 42)
+  end
 end
