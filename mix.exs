@@ -22,7 +22,8 @@ defmodule BalancedTree.Mixfile do
 
   defp deps do
     [{:ex_doc, ">= 0.0.0", only: :dev},
-     {:earmark, ">= 0.0.0", only: :dev}]
+     {:earmark, ">= 0.0.0", only: :dev},
+     {:stream_data, "~> 0.1", only: :test}]
   end
 
   defp description() do
