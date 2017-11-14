@@ -12,8 +12,14 @@ defmodule BalancedTreeTest do
 
   doctest BalancedTree
 
+  def list_of_keys() do
+    gen all l <- uniq_list_of(integer(-1000..1000), max_length: 100) do
+      l
+    end
+  end
+
   property "elements are sorted in increasing key order" do
-    check all keys <- uniq_list_of(integer()) do
+    check all keys <- list_of_keys() do
       values = Enum.map(keys, fn k -> {k, 42} end)
       tree = BalancedTree.new(values)
       sorted_values = Enum.sort_by(values, fn {k, _} -> k end)
@@ -23,7 +29,7 @@ defmodule BalancedTreeTest do
   end
 
   property "elements can be sorted in decreasing order" do
-    check all keys <- uniq_list_of(integer()) do
+    check all keys <- list_of_keys() do
       values = Enum.map(keys, fn k -> {k, 42} end)
       tree = BalancedTree.new(values, comparator: &bigger_to_smaller/2)
       sorted_values = Enum.sort_by(values, fn {k, _} -> k end) |> Enum.reverse
@@ -43,8 +49,8 @@ defmodule BalancedTreeTest do
   end
 
   property "elements are removed by popping" do
-    check all end_keys <- uniq_list_of(integer()),
-              pop_keys <- uniq_list_of(integer()) do
+    check all end_keys <- list_of_keys(),
+              pop_keys <- list_of_keys() do
       keys = end_keys ++ pop_keys
       values = Enum.map(keys, fn k -> {k, 10} end)
       tree = BalancedTree.new(values)
