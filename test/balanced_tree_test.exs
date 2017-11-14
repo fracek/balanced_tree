@@ -62,4 +62,9 @@ defmodule BalancedTreeTest do
     tree = BalancedTree.new([a: 1, b: 2, c: nil])
     assert {nil, _} = BalancedTree.pop(tree, :c, 42)
   end
+
+  test "implements the Enumerable protocol" do
+    tree = BalancedTree.new([a: 1, b: 2, c: 3])
+    assert Enum.all?(tree, fn {k, v} -> is_atom(k) and is_integer(v) end)
+  end
 end

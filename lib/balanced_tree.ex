@@ -358,6 +358,13 @@ defmodule BalancedTree do
     do_to_list(root)
   end
 
+  @doc false
+  @spec reduce(t, term, ({key, value} -> term)) :: term
+  def reduce(tree, acc, fun) do
+    to_list(tree)
+    |> Enumerable.List.reduce(acc, fun)
+  end
+
 
   defp default_cmp(a, b) do
     cond do
@@ -546,4 +553,10 @@ defimpl Inspect, for: BalancedTree do
   defp to_map({key, value}, opts, sep) do
     concat [to_doc(key, opts), sep, to_doc(value, opts)]
   end
+end
+
+defimpl Enumerable, for: BalancedTree do
+  def count(tree), do: BalancedTree.size(tree)
+  def member?(tree, key), do: BalancedTree.has_key?(tree, key)
+  def reduce(tree, acc, fun), do: BalancedTree.reduce(tree, acc, fun)
 end
