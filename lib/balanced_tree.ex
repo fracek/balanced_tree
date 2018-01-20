@@ -432,7 +432,7 @@ defmodule BalancedTree do
   end
 
   defp do_delete({size, root}, cmp, key) do
-    {size, do_delete(root, cmp, key)}
+    {size - 1, do_delete(root, cmp, key)}
   end
   defp do_delete(nil, _cmp, _key), do: nil
   defp do_delete({node_key, value, smaller, bigger}, cmp, key) do
